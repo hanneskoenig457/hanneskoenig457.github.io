@@ -2,10 +2,10 @@
 
 ## Referenz- vs. Momentankonfiguration
 
-Die Verschiebung $\mathbf{u}$ ist die Differenz zwischen der aktuellen Position $\mathbf{x}$ und der ursprünglichen Position $\underline{\bar{\mathbf{X}}}$:
+Die Verschiebung $\mathbf{u}$ ist die Differenz zwischen der aktuellen Position $\mathbf{x}$ und der ursprünglichen Position $\underline{\overline{\mathbf{X}}}$:
 
 $$
-\mathbf{u} = \mathbf{x} - \underline{\bar{\mathbf{X}}}
+\mathbf{u} = \mathbf{x} - \underline{\overline{\mathbf{X}}}
 $$
 
 ```tikz
@@ -25,10 +25,10 @@ $$
 
 % Element dX
 \draw[thick, fill=blue!10] (2.0, 1.5) rectangle (3.0, 2.1);
-\draw[|->|, thick, blue!60!black] (2.0, 2.3) -- (3.0, 2.3) node[midway, above] {$d\underline{\bar{\mathbf{X}}}$};
+\draw[|->|, thick, blue!60!black] (2.0, 2.3) -- (3.0, 2.3) node[midway, above] {$d\underline{\overline{\mathbf{X}}}$};
 
 % Vektor X (Position)
-\draw[->, gray] (0, 1.3) -- (2.0, 1.3) node[midway, below] {$\underline{\bar{\mathbf{X}}}$};
+\draw[->, gray] (0, 1.3) -- (2.0, 1.3) node[midway, below] {$\underline{\overline{\mathbf{X}}}$};
 
 
 % --- Momentankonfiguration (Unten) ---
@@ -70,7 +70,7 @@ Wir betrachten nun isoliert die Vektoren des differentiellen Elements, um die De
 \node[anchor=north] at (1, -2.5) {\small Start};
 
 % 1. Referenzvektor dX
-\draw[->, thick, blue!60!black] (1, 0) -- (2.5, 0) node[midway, above] {$d\underline{\bar{\mathbf{X}}}$};
+\draw[->, thick, blue!60!black] (1, 0) -- (2.5, 0) node[midway, above] {$d\underline{\overline{\mathbf{X}}}$};
 \draw[dashed, gray] (2.5, 0) -- (2.5, -2.0); 
 
 % 2. Momentanvektor dx (Länger)
@@ -90,19 +90,19 @@ Wir betrachten nun isoliert die Vektoren des differentiellen Elements, um die De
 ```
 
 > [!TIP] **Intuition: Punkt vs. Element**
-> Warum fängt $d\underline{\bar{\mathbf{X}}}$ genau bei der Pfeilspitze von $\underline{\bar{\mathbf{X}}}$ an?
+> Warum fängt $d\underline{\overline{\mathbf{X}}}$ genau bei der Pfeilspitze von $\underline{\overline{\mathbf{X}}}$ an?
 >
-> * **$\underline{\bar{\mathbf{X}}}$ (Der Ort):** Das ist die **"Adresse"** des Teilchens im Raum.
-> * **$d\underline{\bar{\mathbf{X}}}$ (Das Element):** Das ist der **"Weg zum Nachbarn"**.
+> * **$\underline{\overline{\mathbf{X}}}$ (Der Ort):** Das ist die **"Adresse"** des Teilchens im Raum.
+> * **$d\underline{\overline{\mathbf{X}}}$ (Das Element):** Das ist der **"Weg zum Nachbarn"**.
 >
-> Der Vektor $d\underline{\bar{\mathbf{X}}}$ ist fest am Punkt $\underline{\bar{\mathbf{X}}}$ **verankert**. Er spannt die **lokale Umgebung** auf.
+> Der Vektor $d\underline{\overline{\mathbf{X}}}$ ist fest am Punkt $\underline{\overline{\mathbf{X}}}$ **verankert**. Er spannt die **lokale Umgebung** auf.
 >
 > **Physikalischer Hintergrund:**
 > Nur in dieser winzigen (differentiellen) Umgebung ist die Welt **flach** (linear). Deshalb können wir hier lineare Algebra betreiben ($\mathbf{F} \cdot d\mathbf{X}$), selbst wenn sich der ganze Körper global krumm verformt.
 ### Definition der Dehnung $\varepsilon$
 
 $$
-\varepsilon = \frac{d\mathbf{u}}{d\underline{\bar{\mathbf{X}}}}
+\varepsilon = \frac{d\mathbf{u}}{d\underline{\overline{\mathbf{X}}}}
 $$
 
 > **Invarianz der Dehnung gegenüber Starrkörperbewegungen:**
