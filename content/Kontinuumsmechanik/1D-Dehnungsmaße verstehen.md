@@ -106,4 +106,4 @@ $$
 $$
 
 > **Invarianz der Dehnung gegenüber Starrkörperbewegungen:**
-> Die absolute Position im Raum ($\mathbf{x}$) spielt für die Materialbeanspruchung keine Rolle. Nur die relative Längenänderung (Streckung) erzeugt Spannungen.
+> Die absolute Position im Raum ($\mathbf{x}$) spielt für die Materialbeanspruchung keine Rolle. Nur die relative Längenänderung (Streckung) erzeugt Spannungen
