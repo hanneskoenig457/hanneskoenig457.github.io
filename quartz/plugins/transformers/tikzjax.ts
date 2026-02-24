@@ -1,114 +1,112 @@
 import { QuartzTransformerPlugin } from "../types"
 import { visit } from "unist-util-visit"
-import { Code } from "mdast"
-import { Element, Root as HastRoot, Text } from "hast"
+import { Code, Root as MdastRoot } from "mdast"
+import { BuildCtx } from "../../util/ctx"
+
+interface Options {
+  showConsole: boolean
+}
+
+const defaultOpts: Options = { showConsole: false }
 
 /**
  * TikZJax transformer plugin for Quartz v4.
  *
- * Converts ```tikz code blocks to <script type="text/tikz"> elements,
- * which are rendered client-side by the tikzjax.com CDN library.
+ * Converts ```tikz code blocks to inline SVGs at **build time** using
+ * the node-tikzjax package. The resulting HTML pages contain static SVG
+ * elements — no client-side JavaScript or WebAssembly download needed.
  *
- * The tikzjax library uses a MutationObserver to detect and render
- * new <script type="text/tikz"> elements, so SPA navigation works
- * automatically as long as tikzjax.js is preserved across navigations
- * (via spaPreserve: true).
+ * In watch mode (`quartz build --serve`) TikZ blocks are skipped to keep
+ * rebuilds fast; SVGs from the last full build remain visible.
+ *
+ * Markdown usage (same format as the Obsidian TikZJax plugin):
+ *
+ * ```tikz
+ * \usetikzlibrary{arrows.meta}
+ * \begin{document}
+ * \begin{tikzpicture}
+ *   ...
+ * \end{tikzpicture}
+ * \end{document}
+ * ```
  */
-export const TikZJax: QuartzTransformerPlugin = () => {
+export const TikZJax: QuartzTransformerPlugin<Partial<Options>> = (opts) => {
+  const o = { ...defaultOpts, ...opts }
+
   return {
     name: "TikZJax",
 
-    markdownPlugins() {
+    markdownPlugins(ctx: BuildCtx) {
+      // Skip in watch/serve mode so incremental rebuilds stay fast.
+      if (ctx.argv.watch) return []
+
       return [
-        () => (tree: any) => {
-          visit(tree, "code", (node: Code) => {
-            if (node.lang === "tikz") {
-              // Use class "tikz" (not "language-tikz") so that the
-              // SyntaxHighlighting plugin (shiki) does not process this block.
-              node.data = {
-                ...node.data,
-                hProperties: {
-                  ...((node.data as any)?.hProperties ?? {}),
-                  className: ["tikz"],
-                },
-              }
-            }
-          })
-        },
-      ]
-    },
+        () =>
+          async (tree: MdastRoot) => {
+            // Dynamic import so the WASM binary is only loaded when a page actually
+            // contains a tikz block. The `@ts-ignore` suppresses the missing-types
+            // warning until node-tikzjax ships its own declaration files.
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const { load, tex, dvi2svg } = await import("node-tikzjax")
 
-    htmlPlugins() {
-      return [
-        () => (tree: HastRoot) => {
-          visit(tree, "element", (node: Element, index, parent) => {
-            if (
-              node.tagName === "pre" &&
-              node.children.length > 0 &&
-              node.children[0].type === "element" &&
-              (node.children[0] as Element).tagName === "code"
-            ) {
-              const codeEl = node.children[0] as Element
-              const classes = (codeEl.properties?.className as string[]) ?? []
+            // Collect all tikz code nodes *before* modifying the tree (splicing
+            // during traversal can cause visit to skip or double-visit nodes).
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            type TikzEntry = { index: number; parent: any; value: string }
+            const tikzNodes: TikzEntry[] = []
 
-              if (classes.includes("tikz")) {
-                // Extract the raw TikZ source text
-                const tikzSource = codeEl.children
-                  .filter((c): c is Text => c.type === "text")
-                  .map((c) => c.value)
-                  .join("")
-
-                // Tidy the source: trim lines and remove empty ones
-                // (mirrors what the Obsidian tikzjax plugin does)
-                const tidied = tikzSource
-                  .replaceAll("&nbsp;", "")
-                  .split("\n")
-                  .map((line) => line.trim())
-                  .filter((line) => line.length > 0)
-                  .join("\n")
-
-                if (parent && index !== undefined && index !== null) {
-                  // Replace <pre><code class="tikz"> with a container div
-                  // containing the <script type="text/tikz"> that tikzjax processes.
-                  parent.children[index] = {
-                    type: "element",
-                    tagName: "div",
-                    properties: { className: ["tikzjax-container"] },
-                    children: [
-                      {
-                        type: "element",
-                        tagName: "script",
-                        properties: { type: "text/tikz" },
-                        children: [{ type: "text", value: tidied }],
-                      },
-                    ],
-                  } as Element
+            // `index` and `parent` need explicit types because TypeScript cannot
+            // always infer them from unist-util-visit's generic overloads under
+            // strict mode + "node" moduleResolution.  `parent` is `any` (explicit,
+            // not implicit) because a Code node's parent can be Root, Blockquote,
+            // ListItem, etc. — all share a `children` array we splice into.
+            visit(
+              tree,
+              "code",
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (node: Code, index: number | null, parent: any) => {
+                if (node.lang === "tikz" && index !== null && parent !== null) {
+                  tikzNodes.push({ index, parent, value: node.value })
                 }
+              },
+            )
+
+            if (tikzNodes.length === 0) return
+
+            // Load the TeX WebAssembly runtime once per page (load() is idempotent).
+            await load()
+
+            // Process in reverse order so that earlier splices don't shift later indices.
+            for (const { index, parent, value } of tikzNodes.reverse()) {
+              try {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                const dvi = await tex(value, { showConsole: o.showConsole })
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                const svg: string = await dvi2svg(dvi)
+
+                // Replace the fenced code block with the rendered SVG in a
+                // container div so CSS can control layout and dark-mode colours.
+                parent.children.splice(index, 1, {
+                  type: "html",
+                  value: `<div class="tikzjax-container">${svg}</div>`,
+                })
+              } catch (e) {
+                console.error(`[TikZJax] Failed to render diagram:\n${e}`)
+                // On error the original code block stays in place so the raw
+                // source is visible instead of an empty gap.
               }
             }
-          })
-        },
+          },
       ]
     },
 
     externalResources() {
       return {
+        // Only the font stylesheet is required — SVGs are already embedded in HTML.
         css: [
           {
-            // TikZJax font styles (required for correct rendering)
-            content: "https://tikzjax.com/v1/fonts.css",
-            spaPreserve: true,
-          },
-        ],
-        js: [
-          {
-            // TikZJax rendering engine.
-            // spaPreserve keeps the script in the <head> across SPA navigations,
-            // so the internal MutationObserver stays active and automatically
-            // renders new <script type="text/tikz"> elements added to the DOM.
-            src: "https://tikzjax.com/v1/tikzjax.js",
-            loadTime: "afterDOMReady",
-            contentType: "external",
+            content: "https://cdn.jsdelivr.net/npm/node-tikzjax@latest/css/fonts.css",
             spaPreserve: true,
           },
         ],

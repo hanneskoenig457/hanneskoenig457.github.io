@@ -2,7 +2,7 @@
 
 // put your custom CSS here!
 
-// TikZJax: container for rendered TikZ diagrams
+// TikZJax: container for build-time rendered TikZ diagrams
 .tikzjax-container {
   display: flex;
   justify-content: center;
@@ -12,7 +12,10 @@
   svg {
     max-width: 100%;
     height: auto;
-    // Use currentColor so TikZ line/text color adapts to light/dark mode
-    color: var(--dark);
   }
+}
+
+// In dark mode, invert black-on-white TikZ SVGs to white-on-dark
+[saved-theme="dark"] .tikzjax-container svg {
+  filter: invert(1);
 }
