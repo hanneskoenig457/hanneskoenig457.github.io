@@ -1,3 +1,18 @@
 @use "./base.scss";
 
 // put your custom CSS here!
+
+// TikZJax: container for rendered TikZ diagrams
+.tikzjax-container {
+  display: flex;
+  justify-content: center;
+  margin: 1.5em 0;
+  overflow-x: auto;
+
+  svg {
+    max-width: 100%;
+    height: auto;
+    // Use currentColor so TikZ line/text color adapts to light/dark mode
+    color: var(--dark);
+  }
+}

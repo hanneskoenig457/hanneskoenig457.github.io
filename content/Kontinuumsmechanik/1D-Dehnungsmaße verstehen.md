@@ -1,6 +1,6 @@
 # Kontinuumsmechanik: Dehnung & Konfigurationen
 
-## Referenz- vs. Momentankonfiguration
+## Referenz- vs. Momentankonfiguration Test
 
 Die Verschiebung $\mathbf{u}$ ist die Differenz zwischen der aktuellen Position $\mathbf{x}$ und der ursprünglichen Position $\underline{\overline{\mathbf{X}}}$:
 
