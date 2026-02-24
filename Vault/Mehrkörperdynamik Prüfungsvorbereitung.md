@@ -1,0 +1,9 @@
+### Die vollständige 3-Spalten-Übersicht
+
+| Eigenschaft        | **1. Newton-Euler (Klassisch)** 🖐️                                             | **2. Lagrange 1. Art (D'Alembert)**🏗️                                    | **3. Lagrange 2. Art (Jourdain)** 🚀                |
+| ------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------- |
+| **Vorgehen**       | **Manuell:** Jeden Körper freischneiden, alle Kräfte einzeichnen.               | **Systematisch:** Vektoren aufstellen, Gleichungssystem bauen.            | **Systematisch:** Projektion in den erlaubten Raum. |
+| **Koordinaten**    | **Absolut** (r)                                                                 | **Absolut** (r)                                                           | **Minimal** (q)                                     |
+| **Zwangskräfte**   | **Explizit** (Schnittkräfte)<br><br>  <br><br>_(Wir sehen jede einzelne Kraft)_ | **Explizit** (Multiplikatoren λ)<br><br>  <br><br>_(Im Vektor versteckt)_ | **Implizit** / Weg<br><br>  <br><br>_(Eliminiert)_  |
+| **Prinzip nötig?** | **Nein!** (Nur F=ma)                                                            | **Ja** (D'Alembert δr)                                                    | **Ja** (Jourdain δv oder D'Alembert)                |
+| **Fazit**          | Fleißarbeit für Einfaches.                                                      | Gut für Computer (DAE).                                                   | Elegant für Simulation (ODE).                       |
